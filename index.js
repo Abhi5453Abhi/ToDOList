@@ -7,6 +7,20 @@ app.use(express.json());
 
 //Routes
 
+//create a user
+app.post("/create_user", async (req, res) => {
+    try {
+        const{ user_name } = req.body;
+        const newTodo = await pool.query(
+            "INSERT INTO users (user_name) VALUES ($1) RETURNING *",
+            [user_name]
+        )
+        res.json(newTodo.rows[0]);
+    } catch (error) {
+        console.error(error.message);
+    }
+})
+
 //create a todo
 app.post("/create_todo", async (req, res) => {
     try {
@@ -15,9 +29,10 @@ app.post("/create_todo", async (req, res) => {
         const { priority } = req.body;
         const { date } = req.body;
         const { state } = req.body;
+        const { user_id } = req.body; //Check
         const newTodo = await pool.query(
-            "INSERT INTO todo (description,title,priority,date,state) VALUES ($1,$2,$3,$4,$5) RETURNING *",
-            [description, title, priority,date,state]
+            "INSERT INTO todo (description,title,priority,date,state,user_id) VALUES ($1,$2,$3,$4,$5,$6) RETURNING *",
+            [description, title, priority,date,state,user_id]
         )
         res.json(newTodo.rows[0]);
     } catch (error) {
@@ -26,11 +41,13 @@ app.post("/create_todo", async (req, res) => {
 })
 
 //get a todo
-app.get("/todo/:id", async (req, res) => {
-    const { id } = req.params;
+app.get("/todo/:todo_id/:user_id", async (req, res) => {
+    const { todo_id } = req.params;
+    const { user_id } = req.params;
     try {
         const newTodo = await pool.query(
-            "SELECT * FROM todo WHERE todo_id=$1", [id]
+            "SELECT * FROM todo WHERE todo_id=$1 and user_id=$2", 
+            [todo_id,user_id]
         )
         res.json(newTodo.rows[0]);
     } catch (error) {
@@ -39,8 +56,9 @@ app.get("/todo/:id", async (req, res) => {
 })
 
 //update a todo
-app.put("/update_todo/:id", async (req, res) => {
-    const { id } = req.params;
+app.put("/update_todo/:todo_id/:user_id", async (req, res) => {
+    const { todo_id } = req.params;
+    const { user_id } = req.params;
     const { description } = req.body;
     const { title } = req.body;
     const { priority } = req.body;
@@ -49,32 +67,32 @@ app.put("/update_todo/:id", async (req, res) => {
     try {
         if (description != undefined) {
             const newTodo = await pool.query(
-                "UPDATE todo SET description = $1 WHERE todo_id = $2",
-                [description, id]
+                "UPDATE todo SET description = $1 WHERE todo_id = $2 and user_id = $3",
+                [description,todo_id,user_id]
             );
         }
         if (title != undefined) {
             const newTodo = await pool.query(
-                "UPDATE todo SET title = $1 WHERE todo_id = $2",
-                [title, id]
+                "UPDATE todo SET title = $1 WHERE todo_id = $2 and user_id = $3",
+                [title,todo_id,user_id]
             );
         }
         if (priority != undefined) {
             const newTodo = await pool.query(
-                "UPDATE todo SET priority = $1 WHERE todo_id = $2",
-                [priority, id]
+                "UPDATE todo SET priority = $1 WHERE todo_id = $2 and user_id = $3",
+                [priority,todo_id,user_id]
             );
         }
         if (date != undefined) {
             const newTodo = await pool.query(
-                "UPDATE todo SET date = $1 WHERE todo_id = $2",
-                [date, id]
+                "UPDATE todo SET date = $1 WHERE todo_id = $2 and user_id = $3",
+                [date,todo_id,user_id]
             );
         }
         if (state != undefined) {
             const newTodo = await pool.query(
-                "UPDATE todo SET state = $1 WHERE todo_id = $2",
-                [state, id]
+                "UPDATE todo SET state = $1 WHERE todo_id = $2 and user_id = $3",
+                [state,todo_id,user_id]
             );
         }
         res.json("UPDATED");
@@ -84,12 +102,13 @@ app.put("/update_todo/:id", async (req, res) => {
 })
 
 //delete a todo
-app.delete("/delete_todo/:id", async (req, res) => {
-    const { id } = req.params;
+app.delete("/delete_todo/:todo_id/:user_id", async (req, res) => {
+    const { todo_id } = req.params;
+    const { user_id } = req.params;
     try {
         const deleted = await pool.query(
-            "DELETE FROM todo WHERE todo_id = $1",
-            [id]
+            "DELETE FROM todo WHERE todo_id = $1 and user_id = $2",
+            [todo_id,user_id]
         );
         res.json("DELETED");
     } catch (error) {
@@ -98,7 +117,8 @@ app.delete("/delete_todo/:id", async (req, res) => {
 })
 
 //search a todo
-app.get("/search_todo", async (req, res) => {
+app.get("/search_todo/:user_id", async (req, res) => {
+    const { user_id } = req.params;
     const { title } = req.body;
     const { priority } = req.body;
     const { state } = req.body;
@@ -133,6 +153,9 @@ app.get("/search_todo", async (req, res) => {
         temp += state;
         temp += "";
     }
+    temp += " and user_id = ";
+    temp += user_id;
+    console.log(temp);
     try {
         const newTodo = await pool.query(
             "SELECT * FROM todo WHERE " + temp
@@ -144,10 +167,12 @@ app.get("/search_todo", async (req, res) => {
 })
 
 //fetch all todos
-app.get("/all_todos", async (req, res) => {
+app.get("/all_todos/:user_id", async (req, res) => {
+    const{ user_id } = req.params;
     try {
         const allTodos = await pool.query(
-            "SELECT * FROM todo"
+            "SELECT * FROM todo WHERE user_id = $1",
+            [user_id]
         )
         res.json(allTodos.rows);
     } catch (error) {
@@ -156,10 +181,12 @@ app.get("/all_todos", async (req, res) => {
 })
 
 //prioritize todos
-app.get("/prioritize_todos", async (req, res) => {
+app.get("/prioritize_todos/:user_id", async (req, res) => {
+    const{ user_id } = req.params;
     try {
         const allTodos = await pool.query(
-            "SELECT * FROM todo "
+            "SELECT * FROM todo where user_id = $1 ORDER BY priority DESC",
+            [user_id]
         )
         res.json(allTodos.rows);
     } catch (error) {
