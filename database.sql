@@ -15,3 +15,8 @@ CREATE TABLE users(
     user_id SERIAL PRIMARY KEY,
     user_name VARCHAR(20)
 );
+
+-- Indexing For Faster Searching , Updations and Deletions
+CREATE INDEX title_index on todo("title");
+CREATE INDEX todo_index on todo("todo_id");
+CREATE INDEX user_index on todo("user_id");
