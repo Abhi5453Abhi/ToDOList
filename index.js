@@ -5,7 +5,7 @@ const pool = require("./DB");
 //User's Input
 app.use(express.json());
 
-//Routes
+//All-Routes
 
 //create a user
 app.post("/create_user", async (req, res) => {
