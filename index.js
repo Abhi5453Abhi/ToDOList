@@ -56,9 +56,9 @@ app.get("/todo/:todo_id/:user_id", async (req, res) => {
 })
 
 //update a todo
-app.put("/update_todo/:todo_id/:user_id", async (req, res) => {
-    const { todo_id } = req.params;
-    const { user_id } = req.params;
+app.put("/update_todo", async (req, res) => {
+    const { todo_id } = req.body;
+    const { user_id } = req.body;
     const { description } = req.body;
     const { title } = req.body;
     const { priority } = req.body;
@@ -102,9 +102,9 @@ app.put("/update_todo/:todo_id/:user_id", async (req, res) => {
 })
 
 //delete a todo
-app.delete("/delete_todo/:todo_id/:user_id", async (req, res) => {
-    const { todo_id } = req.params;
-    const { user_id } = req.params;
+app.delete("/delete_todo", async (req, res) => {
+    const { todo_id } = req.body;
+    const { user_id } = req.body;
     try {
         const deleted = await pool.query(
             "DELETE FROM todo WHERE todo_id = $1 and user_id = $2",
@@ -171,21 +171,7 @@ app.get("/all_todos/:user_id", async (req, res) => {
     const{ user_id } = req.params;
     try {
         const allTodos = await pool.query(
-            "SELECT * FROM todo WHERE user_id = $1",
-            [user_id]
-        )
-        res.json(allTodos.rows);
-    } catch (error) {
-        console.error(error.message);
-    }
-})
-
-//prioritize todos
-app.get("/prioritize_todos/:user_id", async (req, res) => {
-    const{ user_id } = req.params;
-    try {
-        const allTodos = await pool.query(
-            "SELECT * FROM todo where user_id = $1 ORDER BY priority DESC",
+            "SELECT * FROM todo WHERE user_id = $1 ORDER BY priority DESC",
             [user_id]
         )
         res.json(allTodos.rows);
