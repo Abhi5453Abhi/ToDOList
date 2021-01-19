@@ -4,9 +4,10 @@ Setup:-
 1. Clone the project and open it in any editor like VS-code or sublime text.
 2. Install node-postgres and express by following command:-
    npm i express pg.
-3. Download and install postgresql from the https://www.postgresql.org/download/ .
-4. Start SQL shell and pgadmin.
-5. Run all the queries of database.sql in SQL shell.
+3. Start the project using command :- node index
+4. Download and install postgresql from the https://www.postgresql.org/download/ .
+5. Start SQL shell and pgadmin.
+6. Run all the queries of database.sql in SQL shell.
 
 Functionalities:-
 1. Create, Delete, Update and Delete a todo task.
